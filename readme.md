@@ -1,4 +1,4 @@
-Python heapq with dictionary of value : item impelemntation
+Python heapq with dictionary of value : item implementation
 =======================================
 
 Currently only implemented for ```heappop()``` and ```heappush()``` (renamed ```heappop2(), heappush2()``` ) 
