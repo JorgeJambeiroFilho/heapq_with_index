@@ -156,7 +156,6 @@ def heappop2(heap, heapIndex):
     return returnitem
     
 def heappop_arbitrary(heap, heapIndex, item):
-    print("heapIndex item:"+str(heapIndex[item]))
     heap.pop( heapIndex[item] )
     del heapIndex[item]
     
@@ -492,7 +491,7 @@ if __name__ == "__main__":
     
     print("heap      "+str(heap))
     print("heapIndex:"+str(heapIndex))
-    print(heapIndex)
+    
     heappop2(heap, heapIndex)
     print("after pop")
     print("heap:     "+str(heap))
