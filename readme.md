@@ -28,4 +28,20 @@ Example use:
     print("heapIndex:"+str(heapIndex))
 ```
 
+output:
+```
+heap      [0, 1, 2, 6, 3, 5, 4, 7, 8, 9]
+heapIndex:{0: 0, 1: 1, 2: 2, 3: 4, 4: 6, 5: 5, 6: 3, 7: 7, 8: 8, 9: 9}
+{0: 0, 1: 1, 2: 2, 3: 4, 4: 6, 5: 5, 6: 3, 7: 7, 8: 8, 9: 9}
+after pop
+heap:     [1, 3, 2, 6, 9, 5, 4, 7, 8]
+heapIndex:{1: 0, 2: 2, 3: 1, 4: 6, 5: 5, 6: 3, 7: 7, 8: 8, 9: 4}
+heapIndex item:4
+after removing item 9
+heap:     [1, 3, 2, 6, 5, 4, 7, 8]
+heapIndex:{1: 0, 2: 2, 3: 1, 4: 6, 5: 5, 6: 3, 7: 7, 8: 8}
+[1, 2, 3, 4, 5, 6, 7, 8]
+```
+
+
 Star the repo if you can use it.
