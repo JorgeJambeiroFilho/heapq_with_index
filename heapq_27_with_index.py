@@ -126,7 +126,7 @@ Believe me, real good tape sorts were quite spectacular to watch!
 From all times, sorting has always been a Great Art! :-)
 """
 
-__all__ = ['heappush', 'heappop', 'heappush2', 'heappop2', 'heapify', 'heapreplace', 'merge',
+__all__ = ['heappush', 'heappop', 'heappush2', 'heappop2', 'heappop_arbitrary', 'heapify', 'heapreplace', 'merge',
            'nlargest', 'nsmallest', 'heappushpop']
 
 from itertools import islice, count, imap, izip, tee, chain
@@ -135,7 +135,8 @@ from operator import itemgetter
 def cmp_lt(x, y):
     # Use __lt__ if available; otherwise, try __le__.
     # In Py3.x, only __lt__ will be called.
-    return (x < y) if hasattr(x, '__lt__') else (not y <= x)
+    return (x[0] < y[0]) if hasattr(x, '__lt__') else (not y[0] <= x[0])
+    #return (x < y) if hasattr(x, '__lt__') else (not y <= x)
 
 def heappush2(heap, item, heapIndex):
     """Push item onto heap, maintaining the heap invariant."""
@@ -156,9 +157,35 @@ def heappop2(heap, heapIndex):
     return returnitem
     
 def heappop_arbitrary(heap, heapIndex, item):
-    heap.pop( heapIndex[item] )
-    del heapIndex[item]
+    print(str(len(heap))+"heap:"+str(heap))
+    print(str(len(heapIndex))+"heapIndex:"+str(heapIndex))
+    print("remove:"+str(item)+ " index:"+str(heapIndex[item]))
+    assert len(heap) == len(heapIndex)
     
+    if heap:
+        elementIndex = heapIndex[item]
+        if elementIndex == 0:
+            heappop2(heap, heapIndex)
+        else:
+            if elementIndex == len(heap)-1:
+                del heapIndex[item]
+                heap.pop(len(heap)-1)
+            else:
+                newElement = heap[elementIndex]
+                del heapIndex[item]
+                heap[elementIndex] = heap[len(heap)-1]
+                heapIndex[ heap[elementIndex] ] = elementIndex
+                heap.pop(len(heap)-1) #remove last element
+                print("lenheap:"+str(len(heap))+" lenHeapIndex:"+str(len(heapIndex)))
+                #heap.pop( elementIndex )
+                #heap[0] = heap[len(heap)-1]
+                #heapIndex[ heap[0] ] = 0
+                
+                _siftdown(heap, elementIndex, len(heap)-1, heapIndex)
+                print("newElement:"+str(newElement)+ " ="+str(elementIndex))
+                #if newElement == elementIndex:
+                if elementIndex == heapIndex[heap[elementIndex]]:
+                    _siftup(heap, elementIndex, heapIndex)
 
 def heapreplace(heap, item):
     """Pop and return the current smallest value, and add the new item.
@@ -506,7 +533,7 @@ if __name__ == "__main__":
     sort = []
     while heap:
         sort.append(heappop(heap))
-    print sort
+    print(sort)
 
     import doctest
     doctest.testmod()
