@@ -135,8 +135,7 @@ from operator import itemgetter
 def cmp_lt(x, y):
     # Use __lt__ if available; otherwise, try __le__.
     # In Py3.x, only __lt__ will be called.
-    return (x[0] < y[0]) if hasattr(x, '__lt__') else (not y[0] <= x[0])
-    #return (x < y) if hasattr(x, '__lt__') else (not y <= x)
+    return (x < y) if hasattr(x, '__lt__') else (not y <= x)
 
 def heappush2(heap, item, heapIndex):
     """Push item onto heap, maintaining the heap invariant."""
@@ -176,14 +175,9 @@ def heappop_arbitrary(heap, heapIndex, item):
                 heap[elementIndex] = heap[len(heap)-1]
                 heapIndex[ heap[elementIndex] ] = elementIndex
                 heap.pop(len(heap)-1) #remove last element
-                print("lenheap:"+str(len(heap))+" lenHeapIndex:"+str(len(heapIndex)))
-                #heap.pop( elementIndex )
-                #heap[0] = heap[len(heap)-1]
-                #heapIndex[ heap[0] ] = 0
                 
                 _siftdown(heap, elementIndex, len(heap)-1, heapIndex)
                 print("newElement:"+str(newElement)+ " ="+str(elementIndex))
-                #if newElement == elementIndex:
                 if elementIndex == heapIndex[heap[elementIndex]]:
                     _siftup(heap, elementIndex, heapIndex)
 
