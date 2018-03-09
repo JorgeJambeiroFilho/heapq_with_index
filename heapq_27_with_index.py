@@ -156,9 +156,6 @@ def heappop2(heap, heapIndex):
     return returnitem
     
 def heappop_arbitrary(heap, heapIndex, item):
-    print(str(len(heap))+"heap:"+str(heap))
-    print(str(len(heapIndex))+"heapIndex:"+str(heapIndex))
-    print("remove:"+str(item)+ " index:"+str(heapIndex[item]))
     assert len(heap) == len(heapIndex)
     
     if heap:
@@ -175,9 +172,7 @@ def heappop_arbitrary(heap, heapIndex, item):
                 heap[elementIndex] = heap[len(heap)-1]
                 heapIndex[ heap[elementIndex] ] = elementIndex
                 heap.pop(len(heap)-1) #remove last element
-                
                 _siftdown(heap, elementIndex, len(heap)-1, heapIndex)
-                print("newElement:"+str(newElement)+ " ="+str(elementIndex))
                 if elementIndex == heapIndex[heap[elementIndex]]:
                     _siftup(heap, elementIndex, heapIndex)
 
@@ -527,7 +522,7 @@ if __name__ == "__main__":
     sort = []
     while heap:
         sort.append(heappop(heap))
-    print(sort)
+    print sort
 
     import doctest
     doctest.testmod()
