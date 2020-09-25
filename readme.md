@@ -42,4 +42,4 @@ heapIndex:{1: 0, 2: 2, 3: 1, 4: 6, 5: 5, 6: 3, 7: 7, 8: 8}
 ```
 
 
-Star the repo if you can use it.
+Please star the repo if you can use it.
