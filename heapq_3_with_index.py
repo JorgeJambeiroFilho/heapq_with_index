@@ -126,10 +126,10 @@ Believe me, real good tape sorts were quite spectacular to watch!
 From all times, sorting has always been a Great Art! :-)
 """
 
-__all__ = ['heappush', 'heappop', 'heappush2', 'heappop2', 'heappop_arbitrary', 'heapify', 'heapreplace', 'merge',
-           'nlargest', 'nsmallest', 'heappushpop']
+__all__ = ['heappush2', 'heappop2', 'heappop_arbitrary', 'heapify2', 'heapreplace2',
+            'heappushpop2']
 
-from itertools import islice, count, imap, izip, tee, chain
+from itertools import islice, count,  tee, chain
 from operator import itemgetter
 
 def cmp_lt(x, y):
@@ -137,9 +137,15 @@ def cmp_lt(x, y):
     # In Py3.x, only __lt__ will be called.
     return (x < y) if hasattr(x, '__lt__') else (not y <= x)
 
+def get_key(item):
+    if hasattr(item, 'get_key'):
+        return item.get_key()
+    else:
+        return item
+
 def heappush2(heap, item, heapIndex):
     """Push item onto heap, maintaining the heap invariant."""
-    heapIndex[item] = len(heap)
+    heapIndex[get_key(item)] = len(heap)
     heap.append(item)
     _siftdown(heap, 0, len(heap)-1, heapIndex)
 
@@ -152,42 +158,56 @@ def heappop2(heap, heapIndex):
         _siftup(heap, 0, heapIndex)
     else:
         returnitem = lastelt
-    del heapIndex[returnitem]
+    del heapIndex[get_key(returnitem)]
     return returnitem
-    
-def heappop_arbitrary(heap, heapIndex, item):
+
+
+def heappop_arbitrary(heap, heapIndex, key):
     assert len(heap) == len(heapIndex)
     
     if heap:
-        elementIndex = heapIndex[item]
+        elementIndex = heapIndex[key]
         if elementIndex == 0:
-            heappop2(heap, heapIndex)
+            return heappop2(heap, heapIndex)
         else:
             if elementIndex == len(heap)-1:
-                del heapIndex[item]
-                heap.pop(len(heap)-1)
+                del heapIndex[key]
+                return heap.pop(len(heap)-1)
             else:
-                newElement = heap[elementIndex]
-                del heapIndex[item]
+                retElement = heap[elementIndex]
+                del heapIndex[key]
                 heap[elementIndex] = heap[len(heap)-1]
-                heapIndex[ heap[elementIndex] ] = elementIndex
+                heapIndex[get_key(heap[elementIndex])] = elementIndex
                 heap.pop(len(heap)-1) #remove last element
                 _siftdown(heap, elementIndex, len(heap)-1, heapIndex)
-                if elementIndex == heapIndex[heap[elementIndex]]:
+                if elementIndex == heapIndex[get_key(heap[elementIndex])]:
                     _siftup(heap, elementIndex, heapIndex)
+                return retElement
+    else:
+        raise Exception("Poping empty heap")
 
-def changeValue(heap, itemOld, itemNew, heapIndex ):
-    elementIndex = heapIndex[itemOld]
+def changeHeapElement(heap, keyOld, itemNew, heapIndex):
+    elementIndex = heapIndex[keyOld]
+    itemOld = heap[elementIndex]
     heap[elementIndex] = itemNew
-    del heapIndex[itemOld]
-    heapIndex[itemNew] = elementIndex
-    if cmp_lt(itemOld, itemNew): #itemOld < itemNew
+    del heapIndex[keyOld]
+    heapIndex[get_key(itemNew)] = elementIndex
+    if cmp_lt(itemOld, itemNew):
         _siftup(heap, elementIndex, heapIndex)
     else:
         _siftdown(heap, 0, elementIndex, heapIndex)
-        
 
-def heapreplace(heap, item):
+#use after having changed the priority insed the item
+def decreasedPriority(heap, key, heapIndex):
+    elementIndex = heapIndex[key]
+    _siftup(heap, elementIndex, heapIndex)
+
+#use after having changed the priority insed the item
+def increasedPriority(heap, key, heapIndex):
+    elementIndex = heapIndex[key]
+    _siftdown(heap, 0, elementIndex, heapIndex)
+
+def heapreplace2(heap, item, heapIndex):
     """Pop and return the current smallest value, and add the new item.
 
     This is more efficient than heappop() followed by heappush(), and can be
@@ -199,76 +219,31 @@ def heapreplace(heap, item):
             item = heapreplace(heap, item)
     """
     returnitem = heap[0]    # raises appropriate IndexError if heap is empty
+    del heapIndex[get_key(returnitem)]
+    heapIndex[get_key(item)] = 0
     heap[0] = item
-    _siftup(heap, 0)
+    _siftup(heap, 0, heapIndex)
     return returnitem
 
-def heappushpop(heap, item):
+def heappushpop2(heap, item, heapIndex):
     """Fast version of a heappush followed by a heappop."""
     if heap and cmp_lt(heap[0], item):
-        item, heap[0] = heap[0], item
-        _siftup(heap, 0)
+        return heapreplace2(heap, item, heapIndex)
     return item
 
-def heapify(x):
+def heapify2(heap, heapIndex):
+
+    for i in range(len(heap)):
+        heapIndex[get_key(heap[i])] = i
     """Transform list into a heap, in-place, in O(len(x)) time."""
-    n = len(x)
+    n = len(heap)
     # Transform bottom-up.  The largest index there's any point to looking at
     # is the largest with a child index in-range, so must have 2*i + 1 < n,
     # or i < (n-1)/2.  If n is even = 2*j, this is (2*j-1)/2 = j-1/2 so
     # j-1 is the largest, which is n//2 - 1.  If n is odd = 2*j+1, this is
     # (2*j+1-1)/2 = j so j-1 is the largest, and that's again n//2-1.
-    for i in reversed(xrange(n//2)):
-        _siftup(x, i)
-
-def _heappushpop_max(heap, item):
-    """Maxheap version of a heappush followed by a heappop."""
-    if heap and cmp_lt(item, heap[0]):
-        item, heap[0] = heap[0], item
-        _siftup_max(heap, 0)
-    return item
-
-def _heapify_max(x):
-    """Transform list into a maxheap, in-place, in O(len(x)) time."""
-    n = len(x)
     for i in reversed(range(n//2)):
-        _siftup_max(x, i)
-
-def nlargest(n, iterable):
-    """Find the n largest elements in a dataset.
-
-    Equivalent to:  sorted(iterable, reverse=True)[:n]
-    """
-    if n < 0:
-        return []
-    it = iter(iterable)
-    result = list(islice(it, n))
-    if not result:
-        return result
-    heapify(result)
-    _heappushpop = heappushpop
-    for elem in it:
-        _heappushpop(result, elem)
-    result.sort(reverse=True)
-    return result
-
-def nsmallest(n, iterable):
-    """Find the n smallest elements in a dataset.
-
-    Equivalent to:  sorted(iterable)[:n]
-    """
-    if n < 0:
-        return []
-    it = iter(iterable)
-    result = list(islice(it, n))
-    if not result:
-        return result
-    _heapify_max(result)
-    _heappushpop = _heappushpop_max
-    for elem in it:
-        _heappushpop(result, elem)
-    result.sort()
-    return result
+        _siftup(heap, i, heapIndex)
 
 # 'heap' is a heap at all indices >= startpos, except possibly for pos.  pos
 # is the index of a leaf with a possibly out-of-order value.  Restore the
@@ -282,12 +257,12 @@ def _siftdown(heap, startpos, pos, heapIndex):
         parent = heap[parentpos]
         if cmp_lt(newitem, parent):
             heap[pos] = parent
-            heapIndex[parent] = pos
+            heapIndex[get_key(parent)] = pos
             pos = parentpos
             continue
         break
     heap[pos] = newitem
-    heapIndex[newitem] = pos
+    heapIndex[get_key(newitem)] = pos
 
 # The child indices of heap index pos are already heaps, and we want to make
 # a heap at index pos too.  We do this by bubbling the smaller child of
@@ -341,181 +316,71 @@ def _siftup(heap, pos, heapIndex):
             childpos = rightpos
         # Move the smaller child up.
         heap[pos] = heap[childpos]
-        heapIndex[heap[childpos]] = pos
+        heapIndex[get_key(heap[childpos])] = pos
         pos = childpos
         childpos = 2*pos + 1
     # The leaf at pos is empty now.  Put newitem there, and bubble it up
     # to its final resting place (by sifting its parents down).
     heap[pos] = newitem
-    heapIndex[heap[pos]] = pos
+    heapIndex[get_key(heap[pos])] = pos
     _siftdown(heap, startpos, pos, heapIndex)
 
-def _siftdown_max(heap, startpos, pos):
-    'Maxheap variant of _siftdown'
-    newitem = heap[pos]
-    # Follow the path to the root, moving parents down until finding a place
-    # newitem fits.
-    while pos > startpos:
-        parentpos = (pos - 1) >> 1
-        parent = heap[parentpos]
-        if cmp_lt(parent, newitem):
-            heap[pos] = parent
-            pos = parentpos
-            continue
-        break
-    heap[pos] = newitem
+def is_heap(heap, k):
+    l = len(heap)
+    if l == 0:
+        return True
+    if 2 * k + 1 < l and heap[k] > heap[2 * k + 1]:
+        xx = heap[k] > heap[2 * k + 1]
+        return False
+    if 2 * k + 2 < l and heap[k] > heap[2 * k + 2]:
+        return False
+    if 2 * k + 1 < l and not is_heap(heap, 2 * k + 1):
+        return False
+    if 2 * k + 2 < l and not is_heap(heap, 2 * k + 2):
+        return False
+    return True
 
-def _siftup_max(heap, pos):
-    'Maxheap variant of _siftup'
-    endpos = len(heap)
-    startpos = pos
-    newitem = heap[pos]
-    # Bubble up the larger child until hitting a leaf.
-    childpos = 2*pos + 1    # leftmost child position
-    while childpos < endpos:
-        # Set childpos to index of larger child.
-        rightpos = childpos + 1
-        if rightpos < endpos and not cmp_lt(heap[rightpos], heap[childpos]):
-            childpos = rightpos
-        # Move the larger child up.
-        heap[pos] = heap[childpos]
-        pos = childpos
-        childpos = 2*pos + 1
-    # The leaf at pos is empty now.  Put newitem there, and bubble it up
-    # to its final resting place (by sifting its parents down).
-    heap[pos] = newitem
-    _siftdown_max(heap, startpos, pos)
 
-# If available, use C implementation
-try:
-    from _heapq import *
-except ImportError:
-    pass
+def check_heap(heap, heapIndex):
+    if not is_heap(heap, 0):
+        raise Exception("Not a heap")
+    if len(heapIndex) != len(heap):
+        raise Exception("Heap and index have different sizes")
+    for key, itemIndex in heapIndex.items():
+        item = heap[itemIndex]
+        if key != get_key(item):
+            raise Exception("Index and heap don't match")
 
-def merge(*iterables):
-    '''Merge multiple sorted inputs into a single sorted output.
+class IndexedHeapExampleElement:
 
-    Similar to sorted(itertools.chain(*iterables)) but returns a generator,
-    does not pull the data into memory all at once, and assumes that each of
-    the input streams is already sorted (smallest to largest).
+    def __init__(self, key, priority, value):
+       self._key = key
+       self._priority = priority
+       self._value = value
 
-    >>> list(merge([1,3,5,7], [0,2,4,8], [5,10,15,20], [], [25]))
-    [0, 1, 2, 3, 4, 5, 5, 7, 8, 10, 15, 20, 25]
+    def __lt__(self, other):
+       return self._priority < other._priority
 
-    '''
-    _heappop, _heapreplace, _StopIteration = heappop, heapreplace, StopIteration
-    _len = len
+    def get_key(self):
+        return self._key
 
-    h = []
-    h_append = h.append
-    for itnum, it in enumerate(map(iter, iterables)):
-        try:
-            next = it.next
-            h_append([next(), itnum, next])
-        except _StopIteration:
-            pass
-    heapify(h)
+    def __str__(self):
+        return self.__repr__()
 
-    while _len(h) > 1:
-        try:
-            while 1:
-                v, itnum, next = s = h[0]
-                yield v
-                s[0] = next()               # raises StopIteration when exhausted
-                _heapreplace(h, s)          # restore heap condition
-        except _StopIteration:
-            _heappop(h)                     # remove empty iterator
-    if h:
-        # fast case when only a single iterator remains
-        v, itnum, next = h[0]
-        yield v
-        for v in next.__self__:
-            yield v
-
-# Extend the implementations of nsmallest and nlargest to use a key= argument
-_nsmallest = nsmallest
-def nsmallest(n, iterable, key=None):
-    """Find the n smallest elements in a dataset.
-
-    Equivalent to:  sorted(iterable, key=key)[:n]
-    """
-    # Short-cut for n==1 is to use min() when len(iterable)>0
-    if n == 1:
-        it = iter(iterable)
-        head = list(islice(it, 1))
-        if not head:
-            return []
-        if key is None:
-            return [min(chain(head, it))]
-        return [min(chain(head, it), key=key)]
-
-    # When n>=size, it's faster to use sorted()
-    try:
-        size = len(iterable)
-    except (TypeError, AttributeError):
-        pass
-    else:
-        if n >= size:
-            return sorted(iterable, key=key)[:n]
-
-    # When key is none, use simpler decoration
-    if key is None:
-        it = izip(iterable, count())                        # decorate
-        result = _nsmallest(n, it)
-        return map(itemgetter(0), result)                   # undecorate
-
-    # General case, slowest method
-    in1, in2 = tee(iterable)
-    it = izip(imap(key, in1), count(), in2)                 # decorate
-    result = _nsmallest(n, it)
-    return map(itemgetter(2), result)                       # undecorate
-
-_nlargest = nlargest
-def nlargest(n, iterable, key=None):
-    """Find the n largest elements in a dataset.
-
-    Equivalent to:  sorted(iterable, key=key, reverse=True)[:n]
-    """
-
-    # Short-cut for n==1 is to use max() when len(iterable)>0
-    if n == 1:
-        it = iter(iterable)
-        head = list(islice(it, 1))
-        if not head:
-            return []
-        if key is None:
-            return [max(chain(head, it))]
-        return [max(chain(head, it), key=key)]
-
-    # When n>=size, it's faster to use sorted()
-    try:
-        size = len(iterable)
-    except (TypeError, AttributeError):
-        pass
-    else:
-        if n >= size:
-            return sorted(iterable, key=key, reverse=True)[:n]
-
-    # When key is none, use simpler decoration
-    if key is None:
-        it = izip(iterable, count(0,-1))                    # decorate
-        result = _nlargest(n, it)
-        return map(itemgetter(0), result)                   # undecorate
-
-    # General case, slowest method
-    in1, in2 = tee(iterable)
-    it = izip(imap(key, in1), count(0,-1), in2)             # decorate
-    result = _nlargest(n, it)
-    return map(itemgetter(2), result)                       # undecorate
+    def __repr__(self):
+        return str(self._key) + " " + str(self._priority) + " " + str(self._value)
 
 if __name__ == "__main__":
     # Simple sanity test
     heap = []
     data = [1, 3, 5, 7, 9, 2, 4, 6, 8, 0]
     heapIndex = dict()
+    check_heap(heap, heapIndex)
     for item in data:
         heappush2(heap, item, heapIndex)
+        check_heap(heap, heapIndex)
     
+
     print("heap      "+str(heap))
     print("heapIndex:"+str(heapIndex))
     
@@ -523,17 +388,103 @@ if __name__ == "__main__":
     print("after pop")
     print("heap:     "+str(heap))
     print("heapIndex:"+str(heapIndex))
-    
-    #remove item 3
+    check_heap(heap, heapIndex)
+
+    heappop2(heap, heapIndex)
+    print("after pop")
+    print("heap:     "+str(heap))
+    print("heapIndex:"+str(heapIndex))
+    check_heap(heap, heapIndex)
+
+    #remove item 9
     heappop_arbitrary(heap, heapIndex, 9)
     print("after removing item 9")
     print("heap:     "+str(heap))
     print("heapIndex:"+str(heapIndex))
-    
+    check_heap(heap, heapIndex)
+
+    heappop_arbitrary(heap, heapIndex, 7)
+    print("after removing item 7")
+    print("heap:     "+str(heap))
+    print("heapIndex:"+str(heapIndex))
+    check_heap(heap, heapIndex)
+
+
     sort = []
     while heap:
-        sort.append(heappop(heap))
-    print sort
+        sort.append(heappop2(heap, heapIndex))
+    print(sort)
 
-    import doctest
-    doctest.testmod()
+    print("______________________________")
+    # Class sanity test
+    heap = []
+    data = [1, 3, 5, 7, 9, 2, 4, 6, 8, 0]
+    heapIndex = dict()
+    check_heap(heap, heapIndex)
+    for item in data:
+        heappush2(heap, IndexedHeapExampleElement(item, -item, item*item), heapIndex)
+        check_heap(heap, heapIndex)
+
+    data2 = [IndexedHeapExampleElement(item, -item, item*item) for item in data]
+
+    print("heap      " + str(heap))
+    print("heapIndex:" + str(heapIndex))
+
+    heappop2(heap, heapIndex)
+    print("after pop")
+    print("heap:     " + str(heap))
+    print("heapIndex:" + str(heapIndex))
+    check_heap(heap, heapIndex)
+
+    heappop2(heap, heapIndex)
+    print("after pop")
+    print("heap:     " + str(heap))
+    print("heapIndex:" + str(heapIndex))
+    check_heap(heap, heapIndex)
+
+    # remove item 1
+    heappop_arbitrary(heap, heapIndex, 1)
+    print("after removing item 1")
+    print("heap:     " + str(heap))
+    print("heapIndex:" + str(heapIndex))
+    check_heap(heap, heapIndex)
+
+    heappop_arbitrary(heap, heapIndex, 2)
+    print("after removing item 1")
+    print("heap:     " + str(heap))
+    print("heapIndex:" + str(heapIndex))
+    check_heap(heap, heapIndex)
+
+    changeHeapElement(heap, 3, IndexedHeapExampleElement(11, -11, 11*11), heapIndex)
+    print("after replacing item 3 by 11")
+    print("heap:     " + str(heap))
+    print("heapIndex:" + str(heapIndex))
+    check_heap(heap, heapIndex)
+
+    heap[heapIndex[6]]._priority = -66
+    increasedPriority(heap, 6, heapIndex)
+    print("after increasing 6 priority")
+    print("heap:     " + str(heap))
+    print("heapIndex:" + str(heapIndex))
+    check_heap(heap, heapIndex)
+
+    heap[heapIndex[5]]._priority = 10
+    decreasedPriority(heap, 5, heapIndex)
+    print("after increasing 6 priority")
+    print("heap:     " + str(heap))
+    print("heapIndex:" + str(heapIndex))
+    check_heap(heap, heapIndex)
+
+    sort = []
+    while heap:
+        sort.append(heappop2(heap, heapIndex))
+    print(sort)
+
+    print("Not a heap  :", str(data2))
+    heapIndex2 = {}
+    heapify2(data2, heapIndex2)
+    print("heap:     " + str(data2))
+    print("heapIndex:" + str(heapIndex2))
+    check_heap(data2, heapIndex2)
+    #import doctest
+    #doctest.testmod()
