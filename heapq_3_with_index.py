@@ -340,8 +340,11 @@ def is_heap(heap, k):
         return False
     return True
 
+def check_heap(heap):
+    if not is_heap(heap, 0):
+        raise Exception("Not a heap")
 
-def check_heap(heap, heapIndex):
+def check_indexed_heap(heap, heapIndex):
     if not is_heap(heap, 0):
         raise Exception("Not a heap")
     if len(heapIndex) != len(heap):
@@ -375,10 +378,10 @@ if __name__ == "__main__":
     heap = []
     data = [1, 3, 5, 7, 9, 2, 4, 6, 8, 0]
     heapIndex = dict()
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
     for item in data:
         heappush2(heap, item, heapIndex)
-        check_heap(heap, heapIndex)
+        check_indexed_heap(heap, heapIndex)
     
 
     print("heap      "+str(heap))
@@ -388,26 +391,26 @@ if __name__ == "__main__":
     print("after pop")
     print("heap:     "+str(heap))
     print("heapIndex:"+str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
     heappop2(heap, heapIndex)
     print("after pop")
     print("heap:     "+str(heap))
     print("heapIndex:"+str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
     #remove item 9
     heappop_arbitrary(heap, heapIndex, 9)
     print("after removing item 9")
     print("heap:     "+str(heap))
     print("heapIndex:"+str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
     heappop_arbitrary(heap, heapIndex, 7)
     print("after removing item 7")
     print("heap:     "+str(heap))
     print("heapIndex:"+str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
 
     sort = []
@@ -420,10 +423,10 @@ if __name__ == "__main__":
     heap = []
     data = [1, 3, 5, 7, 9, 2, 4, 6, 8, 0]
     heapIndex = dict()
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
     for item in data:
         heappush2(heap, IndexedHeapExampleElement(item, -item, item*item), heapIndex)
-        check_heap(heap, heapIndex)
+        check_indexed_heap(heap, heapIndex)
 
     data2 = [IndexedHeapExampleElement(item, -item, item*item) for item in data]
 
@@ -434,46 +437,46 @@ if __name__ == "__main__":
     print("after pop")
     print("heap:     " + str(heap))
     print("heapIndex:" + str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
     heappop2(heap, heapIndex)
     print("after pop")
     print("heap:     " + str(heap))
     print("heapIndex:" + str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
     # remove item 1
     heappop_arbitrary(heap, heapIndex, 1)
     print("after removing item 1")
     print("heap:     " + str(heap))
     print("heapIndex:" + str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
     heappop_arbitrary(heap, heapIndex, 2)
     print("after removing item 1")
     print("heap:     " + str(heap))
     print("heapIndex:" + str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
     changeHeapElement(heap, 3, IndexedHeapExampleElement(11, -11, 11*11), heapIndex)
     print("after replacing item 3 by 11")
     print("heap:     " + str(heap))
     print("heapIndex:" + str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
     heap[heapIndex[6]]._priority = -66
     increasedPriority(heap, 6, heapIndex)
     print("after increasing 6 priority")
     print("heap:     " + str(heap))
     print("heapIndex:" + str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
     heap[heapIndex[5]]._priority = 10
     decreasedPriority(heap, 5, heapIndex)
     print("after increasing 6 priority")
     print("heap:     " + str(heap))
     print("heapIndex:" + str(heapIndex))
-    check_heap(heap, heapIndex)
+    check_indexed_heap(heap, heapIndex)
 
     sort = []
     while heap:
@@ -485,6 +488,6 @@ if __name__ == "__main__":
     heapify2(data2, heapIndex2)
     print("heap:     " + str(data2))
     print("heapIndex:" + str(heapIndex2))
-    check_heap(data2, heapIndex2)
+    check_indexed_heap(data2, heapIndex2)
     #import doctest
     #doctest.testmod()
