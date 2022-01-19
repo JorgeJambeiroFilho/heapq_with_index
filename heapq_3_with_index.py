@@ -161,6 +161,9 @@ def heappop2(heap, heapIndex):
     del heapIndex[get_key(returnitem)]
     return returnitem
 
+def heappop_arbitrary_if_existent(heap, heapIndex, key):
+    if key in heapIndex:
+        heappop_arbitrary(heap, heapIndex, key)
 
 def heappop_arbitrary(heap, heapIndex, key):
     assert len(heap) == len(heapIndex)
@@ -353,6 +356,19 @@ def check_indexed_heap(heap, heapIndex):
         item = heap[itemIndex]
         if key != get_key(item):
             raise Exception("Index and heap don't match")
+
+def heap_prune(heap, max_len):
+    """Discard items in the queue if the queue is longer than the beam."""
+    if len(heap) > max_len:
+        del heap[:max_len]
+
+
+def indexed_heap_prune(heap, max_len, heapIndex):
+    if len(heap) > max_len:
+        for item in heap[max_len]:
+            del heapIndex[get_key(item)]
+        del heap[:max_len]
+
 
 class IndexedHeapExampleElement:
 
