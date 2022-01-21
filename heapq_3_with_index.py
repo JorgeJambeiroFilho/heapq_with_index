@@ -192,6 +192,9 @@ def heappop_arbitrary(heap, heapIndex, key):
         raise Exception("Poping empty heap")
 
 def changeHeapElement(heap, keyOld, itemNew, heapIndex):
+
+    if keyOld != get_key(itemNew) and get_key(itemNew) in heapIndex:
+        raise Exception("Duplicate item in heap")
     elementIndex = heapIndex[keyOld]
     itemOld = heap[elementIndex]
     heap[elementIndex] = itemNew
