@@ -145,6 +145,8 @@ def get_key(item):
 
 def heappush2(heap, item, heapIndex):
     """Push item onto heap, maintaining the heap invariant."""
+    if get_key(item) in heapIndex:
+        raise Exception("Duplicated item")
     heapIndex[get_key(item)] = len(heap)
     heap.append(item)
     _siftdown(heap, 0, len(heap)-1, heapIndex)
@@ -233,6 +235,12 @@ def heappushpop2(heap, item, heapIndex):
     if heap and cmp_lt(heap[0], item):
         return heapreplace2(heap, item, heapIndex)
     return item
+
+def peek_arbitrary(heap, key, heapIndex):
+    if key not in heapIndex:
+        return None
+    return heap[heapIndex[key]]
+
 
 def heapify2(heap, heapIndex):
 
@@ -493,6 +501,19 @@ if __name__ == "__main__":
     print("heap:     " + str(heap))
     print("heapIndex:" + str(heapIndex))
     check_indexed_heap(heap, heapIndex)
+
+    changeHeapElement(heap, 7, IndexedHeapExampleElement(7, -77, 49), heapIndex)
+    print("after replacing 7")
+    print("heap:     " + str(heap))
+    print("heapIndex:" + str(heapIndex))
+    check_indexed_heap(heap, heapIndex)
+
+    changeHeapElement(heap, 11, IndexedHeapExampleElement(11, 111, 121), heapIndex)
+    print("after replacing 11")
+    print("heap:     " + str(heap))
+    print("heapIndex:" + str(heapIndex))
+    check_indexed_heap(heap, heapIndex)
+
 
     sort = []
     while heap:
